@@ -17,40 +17,47 @@ namespace AppCovid
 
         void GetCountries()
         {
-            var requisicao = WebRequest.CreateHttp("https://api.covid19api.com/countries");
-            requisicao.Method = "GET";
-            requisicao.UserAgent = "RequiscaoCountries";
-
-            using (var response = requisicao.GetResponse())
+            try
             {
-                var streamDados = response.GetResponseStream();
-                StreamReader reader = new StreamReader(streamDados);
-                object objResponse = reader.ReadToEnd();
+                var requisicao = WebRequest.CreateHttp("https://api.covid19api.com/countries");
+                requisicao.Method = "GET";
+                requisicao.UserAgent = "RequiscaoCountries";
 
-                var post = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
-
-                foreach (var item in post)
+                using (var response = requisicao.GetResponse())
                 {
-                    var dados = JsonConvert.DeserializeObject<Countries>(item.ToString());
-                    paises.Add(dados.Country);
-                }
+                    var streamDados = response.GetResponseStream();
+                    StreamReader reader = new StreamReader(streamDados);
+                    object objResponse = reader.ReadToEnd();
 
-                streamDados.Close();
-                reader.Close();
+                    var post = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
+
+                    foreach (var item in post)
+                    {
+                        var dados = JsonConvert.DeserializeObject<Countries>(item.ToString());
+                        paises.Add(dados.Country);
+                    }
+
+                    streamDados.Close();
+                    reader.Close();
+                }
             }
+            catch (Exception ex)
+            {
+                DisplayAlert("Ocorreu um erro:", ex.Message, "OK");                
+            }            
         }
 
         public MainPage()
         {
             InitializeComponent();
 
-            pckPaises.Title = "Selecione o país";
+            pckPaises.Title = "Selecione o país";            
 
             GetCountries();
 
             if (paises.Count > 0)
             {
-                foreach (string pais in paises)
+                foreach (string pais in paises.OrderBy(p => p).ToList())
                 {
                     pckPaises.Items.Add(pais);
                 }

@@ -5,7 +5,7 @@
 
     <StackLayout>
         <Frame BackgroundColor="#2196F3" Padding="24" CornerRadius="0">
-            <Label Text="COVID-19 Track" HorizontalTextAlignment="Center" TextColor="White" FontSize="36"/>
+            <Label Text="COVID-19 TRACK" HorizontalTextAlignment="Center" TextColor="White" FontSize="36"/>
         </Frame>
 
         <Picker x:Name="pckPaises" HorizontalOptions="FillAndExpand" />
