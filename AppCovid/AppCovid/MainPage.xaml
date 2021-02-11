@@ -3,16 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AppCovid.MainPage">
 
-    <StackLayout>
+    <StackLayout>        
         <Frame BackgroundColor="#2196F3" Padding="24" CornerRadius="0">
             <Label Text="COVID-19 INFO" HorizontalTextAlignment="Center" TextColor="White" FontSize="36"/>
         </Frame>
-
         <Picker x:Name="pckPaises" HorizontalOptions="FillAndExpand" />
-        <Button x:Name="btnPesquisar" Text="Pesquisar" Margin="15" BackgroundColor="#2196F3" TextColor="White" FontSize="14" Clicked="btnPesquisar_Clicked" />
+        <Button x:Name="btnPesquisar" Text="Pesquisar" Margin="15" BackgroundColor="#2196F3" TextColor="White" FontSize="14" Clicked="btnPesquisar_Clicked" />        
         <ListView x:Name="lstDados" HorizontalOptions="FillAndExpand" />
         <Button x:Name="btnLimpar" Text="Limpar" Margin="15" BackgroundColor="#2196F3" TextColor="White" FontSize="14" Clicked="btnLimpar_Clicked" />
-
     </StackLayout>
 
 </ContentPage>

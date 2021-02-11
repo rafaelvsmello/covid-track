@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Newtonsoft.Json;
 using System.IO;
+using System.Collections;
 
 namespace AppCovid
 {
     public partial class MainPage : ContentPage
     {
-        List<string> paises = new List<string>();
-        List<string> dadosApi = new List<string>();
+        List<object> Paises = new List<object>();
+        List<string> dadosApi = new List<string>();           
 
         void GetCountries()
         {
@@ -30,12 +31,12 @@ namespace AppCovid
                     StreamReader reader = new StreamReader(streamDados);
                     object objResponse = reader.ReadToEnd();
 
-                    var post = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
+                    Paises = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
 
-                    foreach (var item in post)
+                    foreach (object pais in Paises.OrderBy(p => p.ToString()))
                     {
-                        var dados = JsonConvert.DeserializeObject<Countries>(item.ToString());
-                        paises.Add(dados.Slug);
+                        var dados = JsonConvert.DeserializeObject<Countries>(pais.ToString());
+                        pckPaises.Items.Add(dados.Country);
                     }
 
                     streamDados.Close();
@@ -50,13 +51,9 @@ namespace AppCovid
 
         void GetDados(string pais)
         {
-            DateTime dataInicio = DateTime.Now.AddDays(-1);
-            string dtInicio = dataInicio.ToString("yyyy-MM-dd");
-            string dtFim = DateTime.Now.ToString("yyyy-MM-dd");
-
             try
             {
-                var requisicao = WebRequest.CreateHttp($"https://api.covid19api.com/country/{pais}/status/confirmed?from={dtInicio}T00:00:00Z&to={dtFim}T00:00:00Z");
+                var requisicao = WebRequest.CreateHttp($"https://api.covid19api.com/total/country/{pais}");
                 requisicao.Method = "GET";
                 requisicao.UserAgent = "RequisicaoDados";
 
@@ -70,17 +67,18 @@ namespace AppCovid
 
                     foreach (var item in post)
                     {
-                        var dados = JsonConvert.DeserializeObject<DadosApi>(item.ToString());
-                        dadosApi.Add("País: " + dados.Country);
-                        dadosApi.Add("Total de casos: " + dados.Cases.ToString());
-                        dadosApi.Add("Data do censo: " + dados.Date.ToString("dd/MM/yyyy"));
-                    }
-
-                    if (dadosApi.Count > 0)
-                    {
-                        lstDados.ItemsSource = dadosApi;
+                        var dados = JsonConvert.DeserializeObject<DadosApi>(item.ToString());                        
+                        dadosApi.Add("Total de casos confirmados: " + dados.Confirmed.ToString());
+                        dadosApi.Add("Total de mortos: " + dados.Deaths.ToString());
+                        dadosApi.Add("Total de casos recuperados: " + dados.Recovered.ToString());
+                        dadosApi.Add("Total de casos ativos: " + dados.Active.ToString());
+                        dadosApi.Add("Data do censo: " + dados.Date.ToString("dd/MM/yyyy"));                        
                     }
                     
+                    if (post.Count > 0)
+                    {
+                        lstDados.ItemsSource = dadosApi;
+                    }                    
                 }
             }
             catch (Exception ex)
@@ -91,19 +89,15 @@ namespace AppCovid
 
         public MainPage()
         {
-            InitializeComponent();
+            InitializeComponent();            
 
-            pckPaises.Title = "Selecione o país";            
-
+            btnLimpar.IsVisible = false;
             GetCountries();
 
-            if (paises.Count > 0)
+            if (Paises.Count > 0)
             {
-                foreach (string pais in paises.OrderBy(p => p).ToList())
-                {
-                    pckPaises.Items.Add(pais);
-                }
-            }            
+                pckPaises.Title = "Selecione um país";
+            }
         }
 
         private void btnPesquisar_Clicked(object sender, EventArgs e)
@@ -112,6 +106,7 @@ namespace AppCovid
             {
                 var paisSelecionado = pckPaises.Items[pckPaises.SelectedIndex];
                 GetDados(paisSelecionado);
+                btnLimpar.IsVisible = true;
             }
             else
             {
@@ -121,6 +116,7 @@ namespace AppCovid
 
         private void btnLimpar_Clicked(object sender, EventArgs e)
         {
+            btnLimpar.IsVisible = false;            
             pckPaises.SelectedIndex = -1;
             lstDados.ItemsSource = null;
             dadosApi.Clear();
