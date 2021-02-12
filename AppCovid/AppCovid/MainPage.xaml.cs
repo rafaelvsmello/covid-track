@@ -14,8 +14,8 @@ namespace AppCovid
 {
     public partial class MainPage : ContentPage
     {
-        List<object> Paises = new List<object>();
-        List<string> dadosApi = new List<string>();           
+        List<Countries> listaPaises = new List<Countries>();
+        List<DadosApi> dadosApi = new List<DadosApi>();
 
         void GetCountries()
         {
@@ -31,16 +31,21 @@ namespace AppCovid
                     StreamReader reader = new StreamReader(streamDados);
                     object objResponse = reader.ReadToEnd();
 
+                    List<object> Paises = new List<object>();
                     Paises = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
 
-                    foreach (object pais in Paises.OrderBy(p => p.ToString()))
+                    if (Paises.Count > 0)
                     {
-                        var dados = JsonConvert.DeserializeObject<Countries>(pais.ToString());
-                        pckPaises.Items.Add(dados.Country);
-                    }
+                        foreach (object pais in Paises.OrderBy(p => p.ToString()))
+                        {
+                            var dados = JsonConvert.DeserializeObject<Countries>(pais.ToString());
+                            listaPaises.Add(new Countries { Country = dados.Country, Slug = dados.Slug, ISO2 = dados.ISO2 });
+                            pckPaises.Items.Add(dados.Country);
+                        }
 
-                    streamDados.Close();
-                    reader.Close();
+                        streamDados.Close();
+                        reader.Close();
+                    }
                 }
             }
             catch (Exception ex)
@@ -62,22 +67,18 @@ namespace AppCovid
                     var streamDados = response.GetResponseStream();
                     StreamReader reader = new StreamReader(streamDados);
                     object objResponse = reader.ReadToEnd();
-
+                    
                     var post = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
 
                     foreach (var item in post)
                     {
-                        var dados = JsonConvert.DeserializeObject<DadosApi>(item.ToString());                        
-                        dadosApi.Add("Total de casos confirmados: " + dados.Confirmed.ToString());
-                        dadosApi.Add("Total de mortos: " + dados.Deaths.ToString());
-                        dadosApi.Add("Total de casos recuperados: " + dados.Recovered.ToString());
-                        dadosApi.Add("Total de casos ativos: " + dados.Active.ToString());
-                        dadosApi.Add("Data do censo: " + dados.Date.ToString("dd/MM/yyyy"));                        
+                        var dados = JsonConvert.DeserializeObject<DadosApi>(item.ToString());
+                        dadosApi.Add(new DadosApi { Country = dados.Country, Confirmed = dados.Confirmed });                        
                     }
                     
                     if (post.Count > 0)
                     {
-                        lstDados.ItemsSource = dadosApi;
+                        lstDados.ItemsSource = dadosApi[0].ToString();
                     }                    
                 }
             }
@@ -93,11 +94,7 @@ namespace AppCovid
 
             btnLimpar.IsVisible = false;
             GetCountries();
-
-            if (Paises.Count > 0)
-            {
-                pckPaises.Title = "Selecione um país";
-            }
+            pckPaises.Title = "Selecione um país";
         }
 
         private void btnPesquisar_Clicked(object sender, EventArgs e)
@@ -105,6 +102,7 @@ namespace AppCovid
             if (pckPaises.SelectedIndex != -1)
             {
                 var paisSelecionado = pckPaises.Items[pckPaises.SelectedIndex];
+                var slugPais = listaPaises.Where(item => item.Slug.Contains(paisSelecionado));
                 GetDados(paisSelecionado);
                 btnLimpar.IsVisible = true;
             }
