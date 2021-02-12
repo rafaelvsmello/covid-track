@@ -1,14 +1,10 @@
-﻿using System;
-using System.Net;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xamarin.Forms;
-using Newtonsoft.Json;
 using System.IO;
-using System.Collections;
+using System.Linq;
+using System.Net;
+using Xamarin.Forms;
 
 namespace AppCovid
 {
@@ -50,8 +46,8 @@ namespace AppCovid
             }
             catch (Exception ex)
             {
-                DisplayAlert("Ocorreu um erro", ex.Message, "OK");                
-            }            
+                DisplayAlert("Ocorreu um erro", ex.Message, "OK");
+            }
         }
 
         void GetDados(string pais)
@@ -67,19 +63,19 @@ namespace AppCovid
                     var streamDados = response.GetResponseStream();
                     StreamReader reader = new StreamReader(streamDados);
                     object objResponse = reader.ReadToEnd();
-                    
+
                     var post = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
 
                     foreach (var item in post)
                     {
                         var dados = JsonConvert.DeserializeObject<DadosApi>(item.ToString());
-                        dadosApi.Add(new DadosApi { Country = dados.Country, Confirmed = dados.Confirmed });                        
+                        dadosApi.Add(new DadosApi { Country = dados.Country, Confirmed = dados.Confirmed, Active = dados.Active, Deaths = dados.Deaths });
                     }
-                    
-                    if (post.Count > 0)
-                    {
-                        lstDados.ItemsSource = dadosApi[0].ToString();
-                    }                    
+
+                    //if (post.Count > 0)
+                    //{
+                    //    lstDados.ItemsSource = dadosApi[0].ToString();
+                    //}
                 }
             }
             catch (Exception ex)
@@ -90,7 +86,7 @@ namespace AppCovid
 
         public MainPage()
         {
-            InitializeComponent();            
+            InitializeComponent();
 
             btnLimpar.IsVisible = false;
             GetCountries();
@@ -103,7 +99,7 @@ namespace AppCovid
             {
                 var paisSelecionado = pckPaises.Items[pckPaises.SelectedIndex];
                 var slugPais = listaPaises.Where(item => item.Slug.Contains(paisSelecionado));
-                GetDados(paisSelecionado);
+                GetDados(slugPais.ToString());
                 btnLimpar.IsVisible = true;
             }
             else
@@ -114,7 +110,7 @@ namespace AppCovid
 
         private void btnLimpar_Clicked(object sender, EventArgs e)
         {
-            btnLimpar.IsVisible = false;            
+            btnLimpar.IsVisible = false;
             pckPaises.SelectedIndex = -1;
             lstDados.ItemsSource = null;
             dadosApi.Clear();
