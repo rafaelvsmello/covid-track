@@ -10,6 +10,7 @@ namespace AppCovid
 {
     public partial class MainPage : ContentPage
     {
+        List<string> registros = new List<string>();
         List<Countries> listaPaises = new List<Countries>();
         List<DadosApi> dadosApi = new List<DadosApi>();
 
@@ -64,24 +65,51 @@ namespace AppCovid
                     StreamReader reader = new StreamReader(streamDados);
                     object objResponse = reader.ReadToEnd();
 
-                    var post = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());
+                    var post = JsonConvert.DeserializeObject<List<object>>(objResponse.ToString());                    
 
-                    foreach (var item in post)
+                    if (post.Count > 0)
                     {
-                        var dados = JsonConvert.DeserializeObject<DadosApi>(item.ToString());
-                        dadosApi.Add(new DadosApi { Country = dados.Country, Confirmed = dados.Confirmed, Active = dados.Active, Deaths = dados.Deaths });
-                    }
+                        btnLimpar.IsVisible = true;
+                        var ultimo = post.Count - 1;
 
-                    //if (post.Count > 0)
-                    //{
-                    //    lstDados.ItemsSource = dadosApi[0].ToString();
-                    //}
+                        foreach (var item in post)
+                        {
+                            var dados = JsonConvert.DeserializeObject<DadosApi>(item.ToString());
+                            dadosApi.Add(new DadosApi { Country = dados.Country,
+                                Confirmed = dados.Confirmed,
+                                Deaths = dados.Deaths,
+                                Recovered = dados.Recovered,
+                                Active = dados.Active,
+                                Date = dados.Date
+                            });
+                        }
+
+                        registros.Add("País: " + dadosApi[ultimo].Country.ToString());
+                        registros.Add("Casos confirmados: " + dadosApi[ultimo].Confirmed.ToString());
+                        registros.Add("Mortes: " + dadosApi[ultimo].Deaths.ToString());
+                        registros.Add("Casos recuperados: " + dadosApi[ultimo].Recovered.ToString());
+                        registros.Add("Casos ativos: " + dadosApi[ultimo].Active.ToString());
+                        registros.Add("Data do censo: " + dadosApi[ultimo].Date.ToString("dd/MM/yyyy"));
+                        lstDados.ItemsSource = registros;                        
+                    }
+                    else
+                    {
+                        DisplayAlert("Atenção", "Sem dados para exibir", "OK");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 DisplayAlert("Ocorreu um erro", ex.Message, "OK");
             }
+        }
+
+        void Limpar()
+        {
+            btnLimpar.IsVisible = false;            
+            lstDados.ItemsSource = null;
+            registros.Clear();
+            dadosApi.Clear();
         }
 
         public MainPage()
@@ -97,10 +125,10 @@ namespace AppCovid
         {
             if (pckPaises.SelectedIndex != -1)
             {
+                Limpar();
                 var paisSelecionado = pckPaises.Items[pckPaises.SelectedIndex];
-                var slugPais = listaPaises.Where(item => item.Slug.Contains(paisSelecionado));
-                GetDados(slugPais.ToString());
-                btnLimpar.IsVisible = true;
+                var slugPais = listaPaises.Find(x => x.Country.Contains(paisSelecionado));
+                GetDados(slugPais.Slug);                
             }
             else
             {
@@ -110,10 +138,8 @@ namespace AppCovid
 
         private void btnLimpar_Clicked(object sender, EventArgs e)
         {
-            btnLimpar.IsVisible = false;
             pckPaises.SelectedIndex = -1;
-            lstDados.ItemsSource = null;
-            dadosApi.Clear();
+            Limpar();
         }
     }
 }
