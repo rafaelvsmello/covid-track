@@ -116,9 +116,9 @@ namespace AppCovid
         {
             InitializeComponent();
 
-            btnLimpar.IsVisible = false;
-            GetCountries();
+            btnLimpar.IsVisible = false;            
             pckPaises.Title = "Selecione um país";
+            GetCountries();
         }
 
         private void btnPesquisar_Clicked(object sender, EventArgs e)
@@ -141,5 +141,6 @@ namespace AppCovid
             pckPaises.SelectedIndex = -1;
             Limpar();
         }
+        
     }
 }
